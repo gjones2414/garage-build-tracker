@@ -41,8 +41,13 @@ const pipelineStages = [
 
 function App() {
   const [cars, setCars] = useState(() => {
-    const savedCars = localStorage.getItem("garageCars");
-    return savedCars ? JSON.parse(savedCars) : starterCars;
+    try {
+      const savedCars = localStorage.getItem("garageCars");
+      return savedCars ? JSON.parse(savedCars) : starterCars;
+    } catch (error) {
+      localStorage.removeItem("garageCars");
+      return starterCars;
+    }
   });
 
   const [selectedCarId, setSelectedCarId] = useState(null);
@@ -295,8 +300,25 @@ const saveBudget = () => {
   const convertImageToBase64 = (file, callback) => {
     const reader = new FileReader();
 
-    reader.onloadend = () => {
-      callback(reader.result);
+    reader.onload = (event) => {
+      const img = new Image();
+
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        const maxWidth = 900;
+        const scale = Math.min(maxWidth / img.width, 1);
+
+        canvas.width = img.width * scale;
+        canvas.height = img.height * scale;
+
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+        const compressedImage = canvas.toDataURL("image/jpeg", 0.7);
+        callback(compressedImage);
+      };
+
+      img.src = event.target.result;
     };
 
     reader.readAsDataURL(file);
