@@ -292,6 +292,16 @@ const saveBudget = () => {
     }
   };
   
+  const convertImageToBase64 = (file, callback) => {
+    const reader = new FileReader();
+
+    reader.onloadend = () => {
+      callback(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
   return (
     <div className="app">
       <header className="hero">
@@ -356,7 +366,7 @@ const saveBudget = () => {
               />
             ) : (
               <div className="build-hero-placeholder">
-                Add a car image URL below
+                Add a car photo below
               </div>
             )}
 
@@ -365,10 +375,18 @@ const saveBudget = () => {
 
             <div className="image-input-row">
               <input
-                value={carImage}
-                onChange={(e) => setCarImage(e.target.value)}
-                placeholder="Paste car image URL"
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  
+                  convertImageToBase64(file, (imageData) => { 
+                    setCarImage(imageData);
+                  });              
+                }}
               />
+
               <button onClick={saveCarImage}>Save Image</button>
             </div>
 
@@ -550,11 +568,18 @@ const saveBudget = () => {
               placeholder="Example: 34116888457"
             />
 
-            <label>Part Image URL</label>
+            <label>Part Image</label>
             <input
-              value={partImage}
-              onChange={(e) => setPartImage(e.target.value)}
-              placeholder="Paste image link for the part"
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                convertImageToBase64(file, (imageData) => {
+                  setPartImage(imageData);
+                });
+              }}
             />
 
             <label>Website / Vendor Link</label>
