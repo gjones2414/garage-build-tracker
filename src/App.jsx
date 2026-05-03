@@ -2,32 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import "./App.css";
 
-const starterCars = [
-  {
-    id: 1,
-    name: "2025 BMW 430i xDrive",
-    type: "Daily Performance Coupe",
-    image: "",
-    budget: 10000,
-    mods: [],
-  },
-  {
-    id: 2,
-    name: "1984 Buick Regal Limited",
-    type: "Classic Project Build",
-    image: "",
-    budget: 10000,
-    mods: [],
-  },
-  {
-    id: 3,
-    name: "2010 Lincoln Navigator",
-    type: "Luxury Utility Build",
-    image: "",
-    budget: 10000,
-    mods: [],
-  },
-];
+const [cars, setCars] = useState([]);
 
 const pipelineStages = [
   "Researching",
@@ -339,35 +314,25 @@ const saveBudget = () => {
       </header>
 
       {!selectedCar ? (
-        <div className="car-grid">
-          {cars.map((car) => (
-            <div key={car.id} className="car-card">
-              {car.image ? (
-                <img src={car.image} alt={car.name} className="car-image" />
-              ) : (
-                <div className="car-placeholder">No Image Added</div>
-              )}
-
-              <p className="eyebrow">{car.type}</p>
-              <h2>{car.name}</h2>
-
-              <div className="stat-row">
-                <div>
-                  <span>{car.mods.length}</span>
-                  <p>Mods</p>
-                </div>
-                <div>
-                  <span>${getTotalCost(car.mods).toLocaleString()}</span>
-                  <p>Invested</p>
-                </div>
-              </div>
-
-              <button onClick={() => setSelectedCarId(car.id)}>
-                Open Build
+        <>
+          {cars.length === 0 ? (
+            <div className="empty-garage">
+              <h2>No cars yet</h2>
+              <p>Add your first car to start building your garage.</p>
+              <button onClick={() => setActiveTab("add")}>
+                Add Your First Car
               </button>
             </div>
-          ))}
-        </div>
+          ) : (
+            <div className="car-grid">
+              {cars.map((car) => (
+                <div key={car.id} className="car-card">
+                  {/* keep all your existing car card code here */}
+                </div>
+              ))}
+            </div>
+          )}
+        </>
       ) : (
         <main className="build-page">
           <button
