@@ -60,7 +60,7 @@ function App() {
   const [modName, setModName] = useState("");
   const [modCost, setModCost] = useState("");
   const [modCategory, setModCategory] = useState("Performance");
-  const [modStatus, setModStatus] = useState("Researching");
+  const [modStatus, setModStatus] = useState("Planning");
   const [partNumber, setPartNumber] = useState("");
   const [partImage, setPartImage] = useState("");
   const [website, setWebsite] = useState("");
@@ -81,7 +81,11 @@ function App() {
     [];
 
   useEffect(() => {
-    localStorage.setItem("garageCars", JSON.stringify(cars));
+    try {
+      localStorage.setItem("garageCars", JSON.stringify(cars));
+    } catch (error) {
+      alert("That image is too large to save. Try a smaller photo.");
+    }
   }, [cars]);
 
   const getTotalCost = (mods) => {
@@ -559,15 +563,14 @@ const saveBudget = () => {
                   value={modStatus}
                   onChange={(e) => setModStatus(e.target.value)}
                 >
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
+                  <option value="Researching">Researching</option>
+                  <option value="Planned">Planned</option>
+                  <option value="Need to Order">Need to Order</option>
+                  <option value="Ordered">Ordered</option>
+                  <option value="Ready to Install">Ready to Install</option>
+                  <option value="Installed">Installed</option>
+                  <option value="Completed">Completed</option>
                 </select> 
-                <select>
-                  {pipelineStages.map((stage) => (
-                    <option key={stage}>{stage}</option>
-                  ))}
-                </select>
               </div>
 
               <div>

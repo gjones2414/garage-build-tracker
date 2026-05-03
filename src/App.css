@@ -711,6 +711,24 @@ a:hover {
 .bottom-nav button:hover svg {
   color: #fff;
 }
+
+.bottom-nav button.active {
+  color: #fff;
+}
+
+.bottom-nav button.active svg {
+  color: #ef4444;
+  transform: scale(1.15);
+}
+
+.bottom-nav button.active span {
+  color: #fff;
+}
+
+.bottom-nav button {
+  transition: 0.2s ease;
+}
+
 /* MOBILE APP FEEL */
 @media (max-width: 768px) {
   body {
