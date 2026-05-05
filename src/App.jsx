@@ -2,8 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import "./App.css";
 
-const [cars, setCars] = useState([]);
-
 const pipelineStages = [
   "Researching",
   "Planned",
@@ -18,10 +16,10 @@ function App() {
   const [cars, setCars] = useState(() => {
     try {
       const savedCars = localStorage.getItem("garageCars");
-      return savedCars ? JSON.parse(savedCars) : starterCars;
+      return savedCars ? JSON.parse(savedCars) : [];
     } catch (error) {
       localStorage.removeItem("garageCars");
-      return starterCars;
+      return [];
     }
   });
 
@@ -29,9 +27,9 @@ function App() {
   const [statusFilter, setStatusFilter] = useState("All");
   const [viewMode, setViewMode] = useState("list");
   const [draggedMod, setDraggedMod] = useState(null);
-
+  const [carName, setCarName] = useState("");
+  const [carType, setCarType] = useState("");
   const [carImage, setCarImage] = useState("");
-
   const [modName, setModName] = useState("");
   const [modCost, setModCost] = useState("");
   const [modCategory, setModCategory] = useState("Performance");
@@ -62,6 +60,24 @@ function App() {
       alert("That image is too large to save. Try a smaller photo.");
     }
   }, [cars]);
+
+  const handleAddCar = (e) => {
+    e.preventDefault();
+
+    const newCar = {
+      id: Date.now(),
+      name: carName,
+      type: carType,
+      image: carImage,
+      mods: [],
+    };
+
+    setCars([...cars, newCar]);
+    setCarName("");
+    setCarType("");
+    setCarImage("");
+    setActiveTab("garage");
+  };
 
   const getTotalCost = (mods) => {
     return mods.reduce((total, mod) => total + Number(mod.cost || 0), 0);
@@ -312,6 +328,90 @@ const saveBudget = () => {
           Track the vision, money, parts, links, and progress behind every build.
         </p>
       </header>
+
+      {activeTab === "add" && (
+        <form className="add-car-form" onSubmit={handleAddCar}>
+          <h2>Add Car</h2>
+
+          <input
+            type="text"
+            placeholder="Vehicle name"
+            value={carName}
+            onChange={(e) => setCarName(e.target.value)}
+            required
+          />
+
+          <input
+            type="text"
+            placeholder="Type (Daily, Project, etc)"
+            value={carType}
+            onChange={(e) => setCarType(e.target.value)}
+          />
+
+          <input
+            type="text"
+            placeholder="Image URL optional"
+            value={carImage}
+            onChange={(e) => setCarImage(e.target.value)}
+          />
+
+          <button type="submit">Save Car</button>
+          <button type="button" onClick={() => setActiveTab("garage")}>
+            Cancel
+          </button>
+        </form>
+      )}
+
+      {activeTab === "garage" && (
+        <>
+          {cars.length === 0 ? (
+            <div className="empty-garage">
+              <h2>No cars yet</h2>
+              <p>Add your first car to start building your garage.</p>
+              <button 
+                onClick={() => {
+                  setMobileTab("add");
+                  scrollTo(formRef);
+                }}
+              >
+                Add Your First Car
+              </button>
+            </div>
+          ) : (
+            <div className="car-grid">
+              {cars.map((car) => (
+                <div key={car.id} className="car-card">
+                  {car.image ? (
+                    <img src={car.image} alt={car.name} className="car-image" />
+                  ) : (
+                    <div className="car-placeholder">No Image Added</div>
+                  )}
+
+                  <p className="eyebrow">{car.type}</p>
+                  <h2>{car.name}</h2>
+
+                  <div className="stat-row">
+                    <div>
+                      <span>{car.mods.length}</span>
+                      <p>Mods</p>
+                    </div>
+                    <div>
+                      <span>${getTotalCost(car.mods).toLocaleString()}</span>
+                      <p>Invested</p>
+                    </div>
+                  </div>
+
+                  <button onClick={() => setSelectedCarId(car.id)}>
+                    Open Build
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  ); 
 
       {!selectedCar ? (
         <>
