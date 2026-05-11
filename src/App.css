@@ -91,9 +91,19 @@ button:hover {
   background: #2a2a2a;
 }
 
-.add-car-form button + button {
-  margin-left: 12px;
+.add-car-form {
+  display: flex;
+  flex-direction: column;
 }
+
+.add-car-form button {
+  width: 100%;
+}
+
+.add-car-form button + button {
+  margin-top: 12px;
+}
+
 .form-box {
   max-width: 760px;
   margin: 24px auto;
