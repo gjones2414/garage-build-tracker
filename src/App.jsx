@@ -76,7 +76,7 @@ function App() {
     setCarName("");
     setCarType("");
     setCarImage("");
-    setActiveTab("garage");
+    setMobileTab("garage");
   };
 
   const getTotalCost = (mods) => {
@@ -209,35 +209,35 @@ function App() {
     Low: 3,
   };
 
-const sortByPriority = (mods) => {
-  return [...mods].sort(
-    (a, b) =>
-      (priorityRank[a.priority] || 2) - (priorityRank[b.priority] || 2)
-  );
-};
+  const sortByPriority = (mods) => {
+    return [...mods].sort(
+      (a, b) =>
+        (priorityRank[a.priority] || 2) - (priorityRank[b.priority] || 2)
+    );
+  };
 
-const getNextMod = (mods) => {
-  const activeMods = mods.filter(
-    (m) => m.status !== "Completed" && m.status !== "Installed"
-  );
+  const getNextMod = (mods) => {
+    const activeMods = mods.filter(
+      (m) => m.status !== "Completed" && m.status !== "Installed"
+    );
 
-  if (activeMods.length === 0) return null;
+    if (activeMods.length === 0) return null;
 
-  return sortByPriority(activeMods)[0];
-};
+    return sortByPriority(activeMods)[0];
+  };
 
-const saveBudget = () => {
-  if (!selectedCar) return;
+  const saveBudget = () => {
+    if (!selectedCar) return;
 
-  const updatedCars = cars.map((car) =>
-    car.id === selectedCar.id 
-      ? { ...car, budget: Number(carBudget || 0) } 
-      : car
-  );
+    const updatedCars = cars.map((car) =>
+      car.id === selectedCar.id
+        ? { ...car, budget: Number(carBudget || 0) }
+        : car
+    );
 
-  setCars(updatedCars);
-  setCarBudget("");
-};
+    setCars(updatedCars);
+    setCarBudget("");
+  };
 
   const getSmartRecommendation = (mods) => {
     const activeMods = mods.filter(
@@ -263,7 +263,7 @@ const saveBudget = () => {
       return (statusRank[b.status] || 0) - (statusRank[a.status] || 0);
     })[0];
   };
-  
+
   const getActionPlan = (mods) => {
     const sort = (list) => sortByPriority(list)[0] || null;
 
@@ -291,7 +291,7 @@ const saveBudget = () => {
       ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
   };
-  
+
   const convertImageToBase64 = (file, callback) => {
     const reader = new FileReader();
 
@@ -329,46 +329,43 @@ const saveBudget = () => {
         </p>
       </header>
 
-      {activeTab === "add" && (
-        <form className="add-car-form" onSubmit={handleAddCar}>
-          <h2>Add Car</h2>
-
-          <input
-            type="text"
-            placeholder="Vehicle name"
-            value={carName}
-            onChange={(e) => setCarName(e.target.value)}
-            required
-          />
-
-          <input
-            type="text"
-            placeholder="Type (Daily, Project, etc)"
-            value={carType}
-            onChange={(e) => setCarType(e.target.value)}
-          />
-
-          <input
-            type="text"
-            placeholder="Image URL optional"
-            value={carImage}
-            onChange={(e) => setCarImage(e.target.value)}
-          />
-
-          <button type="submit">Save Car</button>
-          <button type="button" onClick={() => setActiveTab("garage")}>
-            Cancel
-          </button>
-        </form>
-      )}
-
-      {activeTab === "garage" && (
+      {!selectedCar ? (
         <>
-          {cars.length === 0 ? (
+          {mobileTab === "add" ? (
+            <form className="add-car-form" onSubmit={handleAddCar}>
+              <h2>Add Car</h2>
+              <input
+                type="text"
+                placeholder="Vehicle name"
+                value={carName}
+                onChange={(e) => setCarName(e.target.value)}
+                required
+              />
+
+              <input
+                type="text"
+                placeholder="Type (Daily, Project, etc)"
+                value={carType}
+                onChange={(e) => setCarType(e.target.value)}
+              />
+
+              <input
+                type="text"
+                placeholder="Image URL optional"
+                value={carImage}
+                onChange={(e) => setCarImage(e.target.value)}
+              />
+
+              <button type="submit">Save Car</button>
+              <button type="button" onClick={() => setMobileTab("garage")}>
+                Cancel
+              </button>
+            </form>
+          ) : cars.length === 0 ? (
             <div className="empty-garage">
               <h2>No cars yet</h2>
               <p>Add your first car to start building your garage.</p>
-              <button 
+              <button
                 onClick={() => {
                   setMobileTab("add");
                   scrollTo(formRef);
@@ -395,6 +392,7 @@ const saveBudget = () => {
                       <span>{car.mods.length}</span>
                       <p>Mods</p>
                     </div>
+                    
                     <div>
                       <span>${getTotalCost(car.mods).toLocaleString()}</span>
                       <p>Invested</p>
@@ -409,133 +407,112 @@ const saveBudget = () => {
             </div>
           )}
         </>
-      )}
-    </div>
-  ); 
-
-      {!selectedCar ? (
-        <>
-          {cars.length === 0 ? (
-            <div className="empty-garage">
-              <h2>No cars yet</h2>
-              <p>Add your first car to start building your garage.</p>
-              <button onClick={() => setActiveTab("add")}>
-                Add Your First Car
-              </button>
-            </div>
-          ) : (
-            <div className="car-grid">
-              {cars.map((car) => (
-                <div key={car.id} className="car-card">
-                  {/* keep all your existing car card code here */}
-                </div>
-              ))}
-            </div>
-          )}
-        </>
       ) : (
-        <main className="build-page">
-          <button
-            className="back-button"
-            onClick={() => {
-              setSelectedCarId(null);
-              setStatusFilter("All");
-              setViewMode("list");
-              setDraggedMod(null);
-              resetForm();
-            }}
-          >
-            ← Garage
-          </button>
+          <main className="build-page">
+            <button
+              className="back-button"
+              onClick={() => {
+                setSelectedCarId(null);
+                setStatusFilter("All");
+                setViewMode("list");
+                setDraggedMod(null);
+                resetForm();
+              }}
+            >
+              ← Garage
+            </button>
 
-          <section className="build-header">
-            {selectedCar.image ? (
-              <img
-                src={selectedCar.image}
-                alt={selectedCar.name}
-                className="build-hero-image"
-              />
-            ) : (
-              <div className="build-hero-placeholder">
-                Add a car photo below
-              </div>
-            )}
-
-            <p className="eyebrow">{selectedCar.type}</p>
-            <h2>{selectedCar.name}</h2>
-
-            <div className="image-input-row">
-              <input
-                type="file"
-                accept="image/*"
-                onChange={(e) => {
-                  const file = e.target.files[0];
-                  if (!file) return;
-                  
-                  convertImageToBase64(file, (imageData) => { 
-                    setCarImage(imageData);
-                  });              
-                }}
-              />
-
-              <button onClick={saveCarImage}>Save Image</button>
-            </div>
-
-            <div className="stat-row wide">
-              <div>
-                <span>{selectedCar.mods.length}</span>
-                <p>Total Mods</p>
-              </div>
-            <div className="budget-box">
-              <div>
-                <p>Budget</p>
-                <span>${selectedCar.budget ? selectedCar.budget.toLocaleString() : "0"}</span>
-              </div>
-              
-              <div>
-                <p>Remaining</p>
-                <span
-                  className={
-                    Number(selectedCar.budget) - getTotalCost(selectedCar.mods) < 0
-                      ? "over-budget"
-                      : "under-budget"
-                  }
-                >
-                  $
-                  {(
-                    Number(selectedCar.budget || 0) - getTotalCost(selectedCar.mods)
-                  ).toLocaleString()}
-                </span>  
-              </div>
-            </div>
-        <div ref={planRef}>
-          {selectedCar && (
-              <div className="action-plan">
-                <p className="eyebrow">Build Plan</p>
-
-              {getActionPlan(selectedCar.mods).research && (
-                <div className="plan-item">
-                  <span>🔍 Research</span>
-                  <p>{getActionPlan(selectedCar.mods).research.name}</p>
+            <section className="build-header">
+              {selectedCar.image ? (
+                <img
+                  src={selectedCar.image}
+                  alt={selectedCar.name}
+                  className="build-hero-image"
+                />
+              ) : (
+                <div className="build-hero-placeholder">
+                  Add a car photo below
                 </div>
               )}
 
-              {getActionPlan(selectedCar.mods).buy && (
-                <div className="plan-item">
-                  <span>🛒 Buy</span>
-                  <p>{getActionPlan(selectedCar.mods).buy.name}</p>
-                </div>
-              )}
+              <p className="eyebrow">{selectedCar.type}</p>
+              <h2>{selectedCar.name}</h2>
 
-              {getActionPlan(selectedCar.mods).install && (
-                <div className="plan-item">
-                  <span>🔧 Install</span>
-                  <p>{getActionPlan(selectedCar.mods).install.name}</p>
+              <div className="image-input-row">
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => {
+                    const file = e.target.files[0];
+                    if (!file) return;
+
+                    convertImageToBase64(file, (imageData) => {
+                      setCarImage(imageData);
+                    });
+                  }}
+                />
+
+                <button onClick={saveCarImage}>Save Image</button>
+              </div>
+
+              <div className="stat-row wide">
+                <div>
+                  <span>{selectedCar.mods.length}</span>
+                  <p>Total Mods</p>
+                </div>
+              </div>
+              <div className="budget-box">
+                <div>
+                  <p>Budget</p>
+                  <span>${selectedCar.budget ? selectedCar.budget.toLocaleString() : "0"}</span>
+                </div>
+
+                <div>
+                  <p>Remaining</p>
+                  <span
+                    className={
+                      Number(selectedCar.budget) - getTotalCost(selectedCar.mods) < 0
+                        ? "over-budget"
+                        : "under-budget"
+                    }
+                  >
+                    $
+                    {(
+                      Number(selectedCar.budget || 0) - getTotalCost(selectedCar.mods)
+                    ).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+            </section>
+
+            <div ref={planRef}>
+              {selectedCar && (
+                <div className="action-plan">
+                  <p className="eyebrow">Build Plan</p>
+
+                  {getActionPlan(selectedCar.mods).research && (
+                    <div className="plan-item">
+                      <span>🔍 Research</span>
+                      <p>{getActionPlan(selectedCar.mods).research.name}</p>
+                    </div>
+                  )}
+
+                  {getActionPlan(selectedCar.mods).buy && (
+                    <div className="plan-item">
+                      <span>🛒 Buy</span>
+                      <p>{getActionPlan(selectedCar.mods).buy.name}</p>
+                    </div>
+                  )}
+                  {getActionPlan(selectedCar.mods).install && (
+                    <div className="plan-item">
+                      <span>🔧 Install</span>
+                      <p>{getActionPlan(selectedCar.mods).install.name}</p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
+
             <div className="image-input-row">
               <input
                 value={carBudget}
@@ -545,340 +522,341 @@ const saveBudget = () => {
               />
               <button onClick={saveBudget}>Save Budget</button>
             </div>
-            
-              <div>
-                <span>${getTotalCost(selectedCar.mods).toLocaleString()}</span>
-                <p>Total Invested</p>
-              </div>
+
+            <div>
+              <span>${getTotalCost(selectedCar.mods).toLocaleString()}</span>
+              <p>Total Invested</p>
             </div>
 
-            <div className="progress-section">
-              <p>Build Progress</p>
-              <div className="progress-bar">
-                <div
-                  className="progress-fill"
-                  style={{ width: `${getProgress(selectedCar.mods)}%` }}
-                ></div>
-              </div>
-            {selectedCar && getNextMod(selectedCar.mods) && (
-              <div className="next-up">
-                <p className="eyebrow">Next Up</p>
-                
-                <h3>{getNextMod(selectedCar.mods).name}</h3>
-                
-                <span className="status-pill">
-                  {getNextMod(selectedCar.mods).status}
-                </span>
+            <section>
+              <div className="progress-section">
+                <p>Build Progress</p>
 
-                <span
-                  className={`priority-pill ${
-                    getNextMod(selectedCar.mods).priority?.toLowerCase() || "medium"
-                  }`}
-                >
+                <div className="progress-bar">
+                  <div
+                    className="progress-fill"
+                    style={{ width: `${getProgress(selectedCar.mods)}%` }}
+                  ></div>
+                </div>
 
-                  {getNextMod(selectedCar.mods).priority || "Medium"} Priority
-                </span>
-              </div>
-            )}  
-              <span>{getProgress(selectedCar.mods)}%</span>
-            </div>
-          </section>
+                {selectedCar && getNextMod(selectedCar.mods) && (
+                  <div className="next-up">
+                    <p className="eyebrow">Next Up</p>
 
-          <section className="form-box" ref={formRef}>
-            <h3>
-              {editingIndex !== null ? "Update Build Item" : "Add Build Item"}
-            </h3>
+                    <h3>{getNextMod(selectedCar.mods).name}</h3>
 
-            <label>Item</label>
-            <input
-              value={modName}
-              onChange={(e) => setModName(e.target.value)}
-              placeholder="AWE axle-back exhaust, lowering springs, rotors..."
-            />
+                    <span className="status-pill">
+                      {getNextMod(selectedCar.mods).status}
+                    </span>
 
-            <label>Cost</label>
-            <input
-              type="number"
-              value={modCost}
-              onChange={(e) => setModCost(e.target.value)}
-              placeholder="850"
-            />
-
-            <div className="form-grid">
-              <div>
-                <label>Category</label>
-                <select
-                  value={modCategory}
-                  onChange={(e) => setModCategory(e.target.value)}
-                >
-                  <option>Performance</option>
-                  <option>Exterior</option>
-                  <option>Interior</option>
-                  <option>Suspension</option>
-                  <option>Wheels/Tires</option>
-                  <option>Brakes</option>
-                  <option>Maintenance</option>
-                  <option>Audio/Electronics</option>
-                </select>
-              </div>
-
-              <div>
-                <label>Status</label>
-                <select
-                  value={modStatus}
-                  onChange={(e) => setModStatus(e.target.value)}
-                >
-                  <option value="Researching">Researching</option>
-                  <option value="Planned">Planned</option>
-                  <option value="Need to Order">Need to Order</option>
-                  <option value="Ordered">Ordered</option>
-                  <option value="Ready to Install">Ready to Install</option>
-                  <option value="Installed">Installed</option>
-                  <option value="Completed">Completed</option>
-                </select> 
-              </div>
-
-              <div>
-                <label>Priority</label>
-                <select
-                  value={modPriority}
-                  onChange={(e) => setModPriority(e.target.value)}
-                >
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
-                </select>
-              </div>
-            </div>
-
-            <label>Part Number</label>
-            <input
-              value={partNumber}
-              onChange={(e) => setPartNumber(e.target.value)}
-              placeholder="Example: 34116888457"
-            />
-
-            <label>Part Image</label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) => {
-                const file = e.target.files[0];
-                if (!file) return;
-
-                convertImageToBase64(file, (imageData) => {
-                  setPartImage(imageData);
-                });
-              }}
-            />
-
-            <label>Website / Vendor Link</label>
-            <input
-              value={website}
-              onChange={(e) => setWebsite(e.target.value)}
-              placeholder="https://..."
-            />
-
-            <label>Notes / Comments</label>
-            <textarea
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Fitment notes, why you want it, install concerns, etc."
-            />
-
-            <button onClick={saveMod}>
-              {editingIndex !== null ? "Save Changes" : "Add to Build"}
-            </button>
-          </section>
-
-          <section className="mod-list" ref={pipelineRef}>
-            <div className="section-heading">
-              <h3>Build Sheet</h3>
-
-              {viewMode === "list" && (
-                <select
-                  className="filter-select"
-                  value={statusFilter}
-                  onChange={(e) => setStatusFilter(e.target.value)}
-                >
-                  <option>All</option>
-                  {pipelineStages.map((stage) => (
-                    <option key={stage}>{stage}</option>
-                  ))}
-                </select>
-              )}
-            </div>
-
-            <div className="view-toggle">
-              <button onClick={() => setViewMode("list")}>List</button>
-              <button onClick={() => setViewMode("pipeline")}>Pipeline</button>
-            </div>
-
-            {viewMode === "list" ? (
-              selectedCar.mods.length === 0 ? (
-                <p className="empty-state">No build items yet.</p>
-              ) : filteredMods.length === 0 ? (
-                <p className="empty-state">No items match this filter.</p>
-              ) : (
-                pipelineStages.map((stage) => {
-                  const stageMods = sortByPriority(
-                    filteredMods.filter((mod) => mod.status === stage)
-                  );
-
-                  if (stageMods.length === 0) return null;
-
-                  return (
-                    <div key={stage} className="list-group">
-                      <h4 className="list-group-title">{stage}</h4>
-
-                      {stageMods.map((mod) => (
-                        <div key={mod.originalIndex} className="mod-item">
-                          <div className="mod-topline">
-                            <div>
-                              <h3>{mod.name}</h3>
-                              <p>{mod.category || "N/A"}</p>
-                            </div>
-
-                            <span className="price">
-                              ${Number(mod.cost || 0).toLocaleString()}
-                            </span>
-                          </div>
-
-                          <span className="status-pill">{mod.status}</span>
-
-                          <span className={`priority-pill ${mod.priority?.toLowerCase() || "medium"}`}>
-                            {mod.priority || "Medium"} Priority
-                          </span>
-
-                          <div className="action-row">
-                            <button onClick={() => editMod(mod.originalIndex)}>Edit</button>
-                            <button onClick={() => deleteMod(mod.originalIndex)}>Delete</button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  );
-                })
-              )
-            ) : selectedCar.mods.length === 0 ? (
-              <p className="empty-state">No build items yet.</p>
-            ) : (
-              <div className="pipeline">
-                {pipelineStages.map((stage) => {
-                  const stageMods = sortByPriority(
-                    selectedCar.mods
-                      .map((mod, originalIndex) => ({ ...mod, originalIndex }))
-                      .filter((mod) => mod.status === stage)
-                  );
-
-                  return (
-                    <div
-                      key={stage}
-                      className="pipeline-column"
-                      onDragOver={(e) => e.preventDefault()}
-                      onDrop={() => handleDrop(stage)}
+                    <span
+                      className={`priority-pill ${getNextMod(selectedCar.mods).priority?.toLowerCase() || "medium"
+                        }`}
                     >
-                      <h4>{stage}</h4>
+                      {getNextMod(selectedCar.mods).priority || "Medium"} Priority
+                    </span>
+                  </div>
+                )}
 
-                      {stageMods.length === 0 ? (
-                        <p className="pipeline-empty">No items</p>
-                      ) : (
-                        stageMods.map((mod) => (
-                          <div
-                            key={mod.originalIndex}
-                            className="pipeline-card"
-                            draggable
-                            onDragStart={() => setDraggedMod(mod)}
-                          >
-                            {mod.partImage && (
-                              <img
-                                src={mod.partImage}
-                                alt={mod.name}
-                                className="pipeline-card-image"
-                              />
-                            )}
+                <span>{getProgress(selectedCar.mods)}%</span>
+              </div>
+            </section>
 
-                            <p>{mod.name}</p>
-                            <small>{mod.category || "N/A"}</small>
+            <section className="form-box" ref={formRef}>
+              <h3>
+                {editingIndex !== null ? "Update Build Item" : "Add Build Item"}
+              </h3>
 
-                            <span>
-                              ${Number(mod.cost || 0).toLocaleString()}
+              <label>Item</label>
+              <input
+                value={modName}
+                onChange={(e) => setModName(e.target.value)}
+                placeholder="AWE axle-back exhaust, lowering springs, rotors..."
+              />
+
+              <label>Cost</label>
+              <input
+                type="number"
+                value={modCost}
+                onChange={(e) => setModCost(e.target.value)}
+                placeholder="850"
+              />
+
+              <div className="form-grid">
+                <div>
+                  <label>Category</label>
+                  <select
+                    value={modCategory}
+                    onChange={(e) => setModCategory(e.target.value)}
+                  >
+                    <option>Performance</option>
+                    <option>Exterior</option>
+                    <option>Interior</option>
+                    <option>Suspension</option>
+                    <option>Wheels/Tires</option>
+                    <option>Brakes</option>
+                    <option>Maintenance</option>
+                    <option>Audio/Electronics</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>Status</label>
+                  <select
+                    value={modStatus}
+                    onChange={(e) => setModStatus(e.target.value)}
+                  >
+                    <option value="Researching">Researching</option>
+                    <option value="Planned">Planned</option>
+                    <option value="Need to Order">Need to Order</option>
+                    <option value="Ordered">Ordered</option>
+                    <option value="Ready to Install">Ready to Install</option>
+                    <option value="Installed">Installed</option>
+                    <option value="Completed">Completed</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label>Priority</label>
+                  <select
+                    value={modPriority}
+                    onChange={(e) => setModPriority(e.target.value)}
+                  >
+                    <option>High</option>
+                    <option>Medium</option>
+                    <option>Low</option>
+                  </select>
+                </div>
+              </div>
+
+              <label>Part Number</label>
+              <input
+                value={partNumber}
+                onChange={(e) => setPartNumber(e.target.value)}
+                placeholder="Example: 34116888457"
+              />
+
+              <label>Part Image</label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+
+                  convertImageToBase64(file, (imageData) => {
+                    setPartImage(imageData);
+                  });
+                }}
+              />
+
+              <label>Website / Vendor Link</label>
+              <input
+                value={website}
+                onChange={(e) => setWebsite(e.target.value)}
+                placeholder="https://..."
+              />
+
+              <label>Notes / Comments</label>
+              <textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                placeholder="Fitment notes, why you want it, install concerns, etc."
+              />
+
+              <button onClick={saveMod}>
+                {editingIndex !== null ? "Save Changes" : "Add to Build"}
+              </button>
+            </section>
+
+            <section className="mod-list" ref={pipelineRef}>
+              <div className="section-heading">
+                <h3>Build Sheet</h3>
+
+                {viewMode === "list" && (
+                  <select
+                    className="filter-select"
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value)}
+                  >
+                    <option>All</option>
+                    {pipelineStages.map((stage) => (
+                      <option key={stage}>{stage}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+
+              <div className="view-toggle">
+                <button onClick={() => setViewMode("list")}>List</button>
+                <button onClick={() => setViewMode("pipeline")}>Pipeline</button>
+              </div>
+
+              {viewMode === "list" ? (
+                selectedCar.mods.length === 0 ? (
+                  <p className="empty-state">No build items yet.</p>
+                ) : filteredMods.length === 0 ? (
+                  <p className="empty-state">No items match this filter.</p>
+                ) : (
+                  pipelineStages.map((stage) => {
+                    const stageMods = sortByPriority(
+                      filteredMods.filter((mod) => mod.status === stage)
+                    );
+
+                    if (stageMods.length === 0) return null;
+
+                    return (
+                      <div key={stage} className="list-group">
+                        <h4 className="list-group-title">{stage}</h4>
+
+                        {stageMods.map((mod) => (
+                          <div key={mod.originalIndex} className="mod-item">
+                            <div className="mod-topline">
+                              <div>
+                                <h3>{mod.name}</h3>
+                                <p>{mod.category || "N/A"}</p>
+                              </div>
+
+                              <span className="price">
+                                ${Number(mod.cost || 0).toLocaleString()}
+                              </span>
+                            </div>
+
+                            <span className="status-pill">{mod.status}</span>
+
+                            <span className={`priority-pill ${mod.priority?.toLowerCase() || "medium"}`}>
+                              {mod.priority || "Medium"} Priority
                             </span>
 
-                            {mod.partNumber && (
-                              <small>Part #: {mod.partNumber}</small>
-                            )}
-
-                            <div className="pipeline-actions">
-                              <button onClick={() => editMod(mod.originalIndex)}>
-                                Edit
-                              </button>
-                              <button
-                                onClick={() => deleteMod(mod.originalIndex)}
-                              >
-                                Delete
-                              </button>
+                            <div className="action-row">
+                              <button onClick={() => editMod(mod.originalIndex)}>Edit</button>
+                              <button onClick={() => deleteMod(mod.originalIndex)}>Delete</button>
                             </div>
                           </div>
-                        ))
-                      )}
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </section>
-        </main>
+                        ))}
+                      </div>
+                    );
+                  })
+                )
+              ) : selectedCar.mods.length === 0 ? (
+                <p className="empty-state">No build items yet.</p>
+              ) : (
+                <div className="pipeline">
+                  {pipelineStages.map((stage) => {
+                    const stageMods = sortByPriority(
+                      selectedCar.mods
+                        .map((mod, originalIndex) => ({ ...mod, originalIndex }))
+                        .filter((mod) => mod.status === stage)
+                    );
+
+                    return (
+                      <div
+                        key={stage}
+                        className="pipeline-column"
+                        onDragOver={(e) => e.preventDefault()}
+                        onDrop={() => handleDrop(stage)}
+                      >
+                        <h4>{stage}</h4>
+
+                        {stageMods.length === 0 ? (
+                          <p className="pipeline-empty">No items</p>
+                        ) : (
+                          stageMods.map((mod) => (
+                            <div
+                              key={mod.originalIndex}
+                              className="pipeline-card"
+                              draggable
+                              onDragStart={() => setDraggedMod(mod)}
+                            >
+                              {mod.partImage && (
+                                <img
+                                  src={mod.partImage}
+                                  alt={mod.name}
+                                  className="pipeline-card-image"
+                                />
+                              )}
+
+                              <p>{mod.name}</p>
+                              <small>{mod.category || "N/A"}</small>
+
+                              <span>
+                                ${Number(mod.cost || 0).toLocaleString()}
+                              </span>
+
+                              {mod.partNumber && (
+                                <small>Part #: {mod.partNumber}</small>
+                              )}
+
+                              <div className="pipeline-actions">
+                                <button onClick={() => editMod(mod.originalIndex)}>
+                                  Edit
+                                </button>
+                                <button
+                                  onClick={() => deleteMod(mod.originalIndex)}
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          </main>
       )}
-      <nav className="bottom-nav">
-        <button
-          className={mobileTab === "garage" ? "active" : ""}
-          onClick={() => {
-            setMobileTab("garage");
-            setSelectedCarId(null);
-            setViewMode("list");
-          }}
-        >
-          <Home size={18} />
-          <span>Garage</span>
-        </button>
+          <nav className="bottom-nav">
+            <button
+              className={mobileTab === "garage" ? "active" : ""}
+              onClick={() => {
+                setMobileTab("garage");
+                setSelectedCarId(null);
+                setViewMode("list");
+              }}
+            >
+              <Home size={18} />
+              <span>Garage</span>
+            </button>
 
-        <button
-          className={mobileTab === "add" ? "active" : ""}
-          onClick={() => {
-            setMobileTab("add");
-            scrollTo(formRef);
-          }}
-        >
-          <PlusCircle size={18} />
-          <span>Add</span>
-        </button>
+            <button
+              className={mobileTab === "add" ? "active" : ""}
+              onClick={() => {
+                setMobileTab("add");
+                scrollTo(formRef);
+              }}
+            >
+              <PlusCircle size={18} />
+              <span>Add</span>
+            </button>
 
-        <button
-          className={mobileTab === "pipeline" ? "active" : ""}
-          onClick={() => {
-            setMobileTab("pipeline");
-            setViewMode("pipeline");
-            setTimeout(() => scrollTo(pipelineRef), 100);
-          }}
-        >
-          <LayoutGrid size={18} />
-          <span>Pipeline</span>
-        </button>
+            <button
+              className={mobileTab === "pipeline" ? "active" : ""}
+              onClick={() => {
+                setMobileTab("pipeline");
+                setViewMode("pipeline");
+                setTimeout(() => scrollTo(pipelineRef), 100);
+              }}
+            >
+              <LayoutGrid size={18} />
+              <span>Pipeline</span>
+            </button>
 
-        <button
-          className={mobileTab === "plan" ? "active" : ""}
-          onClick={() => {
-            setMobileTab("plan");
-            scrollTo(planRef);
-          }}
-        >
-          <Lightbulb size={18} />
-          <span>Plan</span>
-        </button>
-      </nav>
-    </div>
-  );
+            <button
+              className={mobileTab === "plan" ? "active" : ""}
+              onClick={() => {
+                setMobileTab("plan");
+                scrollTo(planRef);
+              }}
+            >
+              <Lightbulb size={18} />
+              <span>Plan</span>
+            </button>
+          </nav>
+        </div>
+      );
 }
 
 export default App;
