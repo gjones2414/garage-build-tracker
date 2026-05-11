@@ -727,6 +727,31 @@ a:hover {
   color: #4ea1ff;
 }
 
+@media (max-width: 768px) {
+  .app-nav {
+    top: auto;
+    bottom: 0;
+
+    height: 75px;
+
+    border-bottom: none;
+    border-top: 1px solid #2a2a2a;
+
+    justify-content: space-around;
+    padding: 0 10px;
+  }
+
+  .app-nav button {
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+  }
+
+  .app {
+    padding-top: 20px;
+    padding-bottom: 95px;
+  }
+}
 /* MOBILE APP FEEL */
 @media (max-width: 768px) {
   body {
