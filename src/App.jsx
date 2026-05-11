@@ -54,12 +54,8 @@ function App() {
     [];
 
   useEffect(() => {
-    try {
-      localStorage.setItem("garageCars", JSON.stringify(cars));
-    } catch (error) {
-      alert("That image is too large to save. Try a smaller photo.");
-    }
-  }, [cars]);
+    setSelectedCarId(null);
+  }, []); 
 
   const handleAddCar = (e) => {
     e.preventDefault();
@@ -399,7 +395,12 @@ function App() {
                     </div>
                   </div>
 
-                  <button onClick={() => setSelectedCarId(car.id)}>
+                  <button 
+                    onClick={() => {
+                      setSelectedCarId(car.id);
+                    window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                  >
                     Open Build
                   </button>
                 </div>
@@ -808,7 +809,7 @@ function App() {
             </section>
           </main>
       )}
-          <nav className="bottom-nav">
+          <nav className="app-nav">
             <button
               className={mobileTab === "garage" ? "active" : ""}
               onClick={() => {
