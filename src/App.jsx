@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
+import { db } from "./firebase";
 import "./App.css";
+import { db } from "./firebase";
+import { collection, addDoc } from "firebase/firestone";
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 
 const pipelineStages = [
   "Researching",
@@ -40,6 +46,19 @@ function App() {
   const [notes, setNotes] = useState("");
 
   const [editingIndex, setEditingIndex] = useState(null);
+  
+  const saveTestCar = async () => {
+    try {
+      await addDoc(collection(db, "testCars"), {
+        name: "BMW 430i",
+        created: new Date(),
+      });
+
+      console.log("Test car saved!");
+    } catch (error) {
+      console.error("Firebase save failed:", error);
+    }
+  };
 
   const [mobileTab, setMobileTab] = useState("garage");
 
@@ -315,7 +334,12 @@ function App() {
     reader.readAsDataURL(file);
   };
 
+  <button onClick={saveTestCar}>
+    Test Firebase Save
+  </button>
+
   return (
+      
     <div className="app">
       <header className="hero">
         <p className="eyebrow">Busted Knuckles Garage</p>
@@ -324,6 +348,10 @@ function App() {
           Track the vision, money, parts, links, and progress behind every build.
         </p>
       </header>
+
+      <button onClick={saveTestCar}>
+        Test Firebase Save
+      </button>
 
       {!selectedCar ? (
         <>
