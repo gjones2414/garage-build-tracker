@@ -3,9 +3,6 @@ import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import { db } from "./firebase";
 import "./App.css";
 import { collection, addDoc } from "firebase/firestore";
-import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-import { getStorage } from "firebase/storage";
 
 const pipelineStages = [
   "Researching",
@@ -336,6 +333,26 @@ function App() {
   <button onClick={saveTestCar}>
     Test Firebase Save
   </button>
+
+  useEffect(() => {
+    const saveCars = async () => {
+      try {
+        localStorage.setItem("garageCars", JSON.stringify(cars));
+
+        await addDoc(collection(db, "garageCars"), {
+          cars,
+          savedAt: new Date(),
+          source: "phone-test",
+        });
+
+        console.log("Cars saved to Firebase");
+      } catch (error) {
+        console.error("Save failed:", error);
+      }
+    };
+
+    saveCars();
+  }, []);
 
   return (
       
