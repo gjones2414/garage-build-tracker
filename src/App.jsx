@@ -3,6 +3,13 @@ import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import { db } from "./firebase";
 import "./App.css";
 import { collection, addDoc } from "firebase/firestore";
+import { auth } from "./firebase";
+import {
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+} from "firebase/auth";
 
 const pipelineStages = [
   "Researching",
@@ -24,7 +31,9 @@ function App() {
       return [];
     }
   });
-
+  const [user, setUser] = useState(null);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [selectedCarId, setSelectedCarId] = useState(null);
   const [statusFilter, setStatusFilter] = useState("All");
   const [viewMode, setViewMode] = useState("list");
@@ -88,6 +97,46 @@ function App() {
     setCarType("");
     setCarImage("");
     setMobileTab("garage");
+  };
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const register = async () => {
+    try {
+      await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      alert("Account created!");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+  
+  const login = async () => {
+    try {
+      await signInWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
+
+      alert("Logged in!");
+    } catch (error) {
+      alert(error.message);
+    }
+  };
+
+  const logout = async () => {
+    await signOut(auth);
   };
 
   const getTotalCost = (mods) => {
@@ -364,6 +413,45 @@ function App() {
           Track the vision, money, parts, links, and progress behind every build.
         </p>
       </header>
+
+      <div
+        style={{
+          background: "red",
+          padding: "20px",
+          position: "fixed",
+          top: "10px",
+          right: "10px",
+          zIndex: 9999,
+        }}
+      >
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+
+        <button onClick={register}>
+          Register
+        </button>
+
+        <button onClick={login}>
+          Login
+        </button>
+
+        {user && (
+          <button onClick={logout}>
+            Logout
+          </button>
+        )}
+      </div>
 
       <button onClick={saveTestCar}>
         Test Firebase Save
