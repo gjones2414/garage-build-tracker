@@ -899,3 +899,34 @@ a:hover {
     gap: 4px;
   }
 }
+
+.auth-bar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.auth-bar input {
+  padding: 10px;
+  border-radius: 8px;
+  border: 1px solid #444;
+  background: #1e1e1e;
+  color: white;
+}
+
+.auth-bar button {
+  padding: 10px 14px;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: white;
+}

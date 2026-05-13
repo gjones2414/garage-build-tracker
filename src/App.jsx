@@ -414,48 +414,41 @@ function App() {
         </p>
       </header>
 
-      <div
-        style={{
-          background: "red",
-          padding: "20px",
-          position: "fixed",
-          top: "10px",
-          right: "10px",
-          zIndex: 9999,
-        }}
-      >
-        <input
-          type="email"
-          placeholder="Email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-        />
+      <div className="auth-bar">
+        {!user ? (
+          <>
+            <input
+              type="email"
+              placeholder="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
 
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+            <input
+              type="password"
+              placeholder="Password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
 
-        <button onClick={register}>
-          Register
-        </button>
+            <button onClick={register}>
+              Register
+            </button>
 
-        <button onClick={login}>
-          Login
-        </button>
+            <button onClick={login}>
+              Login
+            </button>
+          </>
+        ) : (
+          <div className="user-info">
+            <span>{user.email}</span>
 
-        {user && (
-          <button onClick={logout}>
-            Logout
-          </button>
+            <button onClick={logout}>
+              Logout
+            </button>
+          </div>
         )}
       </div>
-
-      <button onClick={saveTestCar}>
-        Test Firebase Save
-      </button>
 
       {!selectedCar ? (
         <>
