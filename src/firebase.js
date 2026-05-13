@@ -1,3 +1,7 @@
+import { initializeApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+
 const firebaseConfig = {
   apiKey: "AIzaSyByNzZc7rxbTh6od01Oqn4N9_HR-Qi3nuI",
   authDomain: "busted-knuckles-garage.firebaseapp.com",
