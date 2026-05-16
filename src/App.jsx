@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import { db } from "./firebase";
 import "./App.css";
-import { collection, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc } from "firebase/firestore";
 import { auth } from "./firebase";
 import {
   createUserWithEmailAndPassword,
@@ -22,15 +22,7 @@ const pipelineStages = [
 ];
 
 function App() {
-  const [cars, setCars] = useState(() => {
-    try {
-      const savedCars = localStorage.getItem("garageCars");
-      return savedCars ? JSON.parse(savedCars) : [];
-    } catch (error) {
-      localStorage.removeItem("garageCars");
-      return [];
-    }
-  });
+  const [cars, setCars] = useState([]);
   const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -81,22 +73,36 @@ function App() {
     setSelectedCarId(null);
   }, []); 
 
-  const handleAddCar = (e) => {
+  const handleAddCar = async (e) => {
     e.preventDefault();
 
+    if (!user) return;
+
     const newCar = {
-      id: Date.now(),
       name: carName,
       type: carType,
       image: carImage,
       mods: [],
+      createdAt: Date.now(),
     };
 
-    setCars([...cars, newCar]);
-    setCarName("");
-    setCarType("");
-    setCarImage("");
-    setMobileTab("garage");
+    try {
+      const carsRef = collection(db, "users", user.uid, "cars");
+      
+      console.log("newCar object:", newCar);
+      
+      const docRef = await addDoc(carsRef, newCar);
+
+      console.log("Car saved to Firebase:", docRef.id);
+
+      setCarName("");
+      setCarType("");
+      setCarImage("");
+      setMobileTab("garage");
+
+    } catch (error) {
+      console.error("Error saving car:", error);
+    }
   };
 
   useEffect(() => {
@@ -106,6 +112,41 @@ function App() {
 
     return () => unsubscribe();
   }, []);
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser);
+
+      console.log("Logged in user:", currentUser);
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  useEffect(() => {
+    if (!user) return;
+
+    const loadCars = async () => {
+      try {
+        const carsRef = collection(db, "users", user.uid, "cars");
+
+        const snapshot = await getDocs(carsRef);
+
+        const loadedCars = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+
+        console.log("Loaded cars from Firebase:", loadedCars);
+
+        setCars(loadedCars);
+      } catch (error) {
+        console.error("Error loading cars:", error);
+      }
+    };
+
+    loadCars();
+  }, [user]);
 
   const register = async () => {
     try {
@@ -383,26 +424,6 @@ function App() {
     Test Firebase Save
   </button>
 
-  useEffect(() => {
-    const saveCars = async () => {
-      try {
-        localStorage.setItem("garageCars", JSON.stringify(cars));
-
-        await addDoc(collection(db, "garageCars"), {
-          cars,
-          savedAt: new Date(),
-          source: "phone-test",
-        });
-
-        console.log("Cars saved to Firebase");
-      } catch (error) {
-        console.error("Save failed:", error);
-      }
-    };
-
-    saveCars();
-  }, []);
-
   return (
       
     <div className="app">
@@ -413,6 +434,12 @@ function App() {
           Track the vision, money, parts, links, and progress behind every build.
         </p>
       </header>
+
+      {user && (
+        <p>
+          Logged in as: {user.email}
+        </p>
+      )}
 
       <div className="auth-bar">
         {!user ? (
