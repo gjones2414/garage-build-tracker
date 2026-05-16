@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import { db } from "./firebase";
 import "./App.css";
-import { collection, getDocs, addDoc } from "firebase/firestore";
+import { collection, getDocs, addDoc, doc, setDoc } from "firebase/firestore";
 import { auth } from "./firebase";
 import {
   createUserWithEmailAndPassword,
@@ -218,7 +218,7 @@ function App() {
     setCarImage("");
   };
 
-  const saveMod = () => {
+  const saveMod = async () => {
     if (!modName || !selectedCar) return;
 
     const updatedCars = cars.map((car) => {
@@ -248,8 +248,25 @@ function App() {
     });
 
     setCars(updatedCars);
+
+    try {
+      const updatedCar = updatedCars.find(
+        (car) => car.id === selectedCarId
+      );
+
+      await setDoc(
+        doc(db, "users", user.uid, "cars", selectedCarId),
+        updatedCar
+      );
+
+      console.log("Mods synced to Firebase");
+
+    } catch (error) {
+      console.error("Error syncing mods:", error);
+    }
+
     resetForm();
-  };
+    };  
 
   const editMod = (index) => {
     const mod = selectedCar.mods[index];
