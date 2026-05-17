@@ -17,6 +17,11 @@ import {
   onAuthStateChanged,
   signOut,
 } from "firebase/auth";
+import {
+  ref,
+  uploadBytes,
+  getDownloadURL,
+} from "firebase/storage";
 
 const pipelineStages = [
   "Researching",
@@ -74,14 +79,23 @@ function App() {
 
   const filteredMods =
     selectedCar?.mods
-      .map((mod, originalIndex) => ({ ...mod, originalIndex }))
-      .filter((mod) => statusFilter === "All" || mod.status === statusFilter) ||
-    [];
+      ?.map((mod, originalIndex) => ({
+        ...mod,
+        status: mod.status || "Planned",
+        originalIndex,
+      })) || [];
 
-  useEffect(() => {
-    setSelectedCarId(null);
-  }, []); 
+  console.log("Cars:", cars);
+  console.log("Selected Car ID:", selectedCarId);
+  console.log("Selected Car:", selectedCar);
+  console.log("Selected Car Mods:", selectedCar?.mods);
+  console.log("Filtered Mods:", filteredMods);
 
+  console.log("FILTERED MODS LENGTH:", filteredMods.length);
+
+  filteredMods.forEach((mod, index) => {
+    console.log("MOD", index, mod);
+  });
   const handleAddCar = async (e) => {
     e.preventDefault();
 
@@ -237,7 +251,7 @@ function App() {
         name: modName,
         cost: Number(modCost || 0),
         category: modCategory,
-        status: modStatus,
+        status: modStatus || "Planning",
         partNumber,
         partImage,
         website,
@@ -309,7 +323,7 @@ function App() {
     if (!draggedMod || !selectedCar) return;
 
     const updatedCars = cars.map((car) => {
-      if (car.id !== selectedCar.id) return car;
+      if (String(car.id) !== String(selectedCar.id)) return car;
 
       const updatedMods = car.mods.map((mod, index) => {
         if (index === draggedMod.originalIndex) {
@@ -415,33 +429,6 @@ function App() {
     if (ref.current) {
       ref.current.scrollIntoView({ behavior: "smooth", block: "start" });
     }
-  };
-
-  const convertImageToBase64 = (file, callback) => {
-    const reader = new FileReader();
-
-    reader.onload = (event) => {
-      const img = new Image();
-
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        const maxWidth = 900;
-        const scale = Math.min(maxWidth / img.width, 1);
-
-        canvas.width = img.width * scale;
-        canvas.height = img.height * scale;
-
-        const ctx = canvas.getContext("2d");
-        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-        const compressedImage = canvas.toDataURL("image/jpeg", 0.7);
-        callback(compressedImage);
-      };
-
-      img.src = event.target.result;
-    };
-
-    reader.readAsDataURL(file);
   };
 
   <button onClick={saveTestCar}>
@@ -621,11 +608,10 @@ function App() {
                   accept="image/*"
                   onChange={(e) => {
                     const file = e.target.files[0];
+
                     if (!file) return;
 
-                    convertImageToBase64(file, (imageData) => {
-                      setCarImage(imageData);
-                    });
+                    setCarImage(file);
                   }}
                 />
 
@@ -819,11 +805,10 @@ function App() {
                 accept="image/*"
                 onChange={(e) => {
                   const file = e.target.files[0];
+
                   if (!file) return;
 
-                  convertImageToBase64(file, (imageData) => {
-                    setPartImage(imageData);
-                  });
+                  setPartImage(file);
                 }}
               />
 
@@ -877,7 +862,10 @@ function App() {
                 ) : (
                   pipelineStages.map((stage) => {
                     const stageMods = sortByPriority(
-                      filteredMods.filter((mod) => mod.status === stage)
+                      filteredMods.filter(
+                        (mod) =>
+                          (mod.status || "Planned").trim() === stage.trim()
+                      )
                     );
 
                     if (stageMods.length === 0) return null;
