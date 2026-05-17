@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
 import { db } from "./firebase";
 import "./App.css";
-import { collection, getDocs, addDoc, doc, setDoc } from "firebase/firestore";
+import { 
+  collection, 
+  getDocs, 
+  addDoc, 
+  doc, 
+  setDoc,
+  onSnapshot, 
+} from "firebase/firestore";
 import { auth } from "./firebase";
 import {
   createUserWithEmailAndPassword,
@@ -61,7 +68,9 @@ function App() {
 
   const [carBudget, setCarBudget] = useState("");
 
-  const selectedCar = cars.find((car) => car.id === selectedCarId);
+  const selectedCar = cars.find(
+    (car) => String(car.id) === String(selectedCarId)
+  );
 
   const filteredMods =
     selectedCar?.mods
@@ -126,26 +135,26 @@ function App() {
   useEffect(() => {
     if (!user) return;
 
-    const loadCars = async () => {
-      try {
-        const carsRef = collection(db, "users", user.uid, "cars");
+    const carsRef = collection(db, "users", user.uid, "cars");
 
-        const snapshot = await getDocs(carsRef);
-
+    const unsubscribe = onSnapshot(
+      carsRef,
+      (snapshot) => {
         const loadedCars = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
 
-        console.log("Loaded cars from Firebase:", loadedCars);
+        console.log("Realtime cars update:", loadedCars);
 
         setCars(loadedCars);
-      } catch (error) {
-        console.error("Error loading cars:", error);
+      },
+      (error) => {
+        console.error("Realtime sync error:", error);
       }
-    };
+    );
 
-    loadCars();
+    return () => unsubscribe();
   }, [user]);
 
   const register = async () => {
@@ -246,8 +255,6 @@ function App() {
 
       return { ...car, mods: updatedMods };
     });
-
-    setCars(updatedCars);
 
     try {
       const updatedCar = updatedCars.find(
