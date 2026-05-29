@@ -21,7 +21,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
-console.log("STORAGE IMPORT:", storage);
+
 const pipelineStages = [
   "Researching",
   "Planned",
@@ -89,27 +89,17 @@ function App() {
 
     let imageUrl = "";
 
-console.log("carImage BEFORE upload:", carImage);
-
 if (carImage) {
   try {
-    console.log("Starting upload...");
-
     const imageRef = ref(
       storage,
       `car-images/${user.uid}/${Date.now()}-${carImage.name}`
     );
 
-    console.log("Image ref created:", imageRef.fullPath);
-
     await uploadBytes(imageRef, carImage);
 
-    console.log("Upload complete");
-
     imageUrl = await getDownloadURL(imageRef);
-
-    console.log("Download URL:", imageUrl);
-
+    
   } catch (error) {
     console.error("Image upload failed:", error);
   }
@@ -634,7 +624,6 @@ if (carImage) {
 
               <button
                 onClick={() => {
-                  alert("BUTTON CLICK WORKS");
                   saveCarImage();
                 }}
               >
