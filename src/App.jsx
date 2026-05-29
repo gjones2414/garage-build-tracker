@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { db, auth, storage } from "./firebase";
 import { Home, PlusCircle, LayoutGrid, Lightbulb } from "lucide-react";
-import { db } from "./firebase";
 import "./App.css";
 import { 
   collection, 
@@ -10,7 +10,6 @@ import {
   setDoc,
   onSnapshot, 
 } from "firebase/firestore";
-import { auth } from "./firebase";
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
@@ -22,7 +21,7 @@ import {
   uploadBytes,
   getDownloadURL,
 } from "firebase/storage";
-
+console.log("STORAGE IMPORT:", storage);
 const pipelineStages = [
   "Researching",
   "Planned",
@@ -61,9 +60,7 @@ function App() {
       await addDoc(collection(db, "testCars"), {
         name: "BMW 430i",
         created: new Date(),
-      });
-
-      console.log("Test car saved!");
+      });      
     } catch (error) {
       console.error("Firebase save failed:", error);
     }
@@ -85,38 +82,51 @@ function App() {
         originalIndex,
       })) || [];
 
-  console.log("Cars:", cars);
-  console.log("Selected Car ID:", selectedCarId);
-  console.log("Selected Car:", selectedCar);
-  console.log("Selected Car Mods:", selectedCar?.mods);
-  console.log("Filtered Mods:", filteredMods);
-
-  console.log("FILTERED MODS LENGTH:", filteredMods.length);
-
-  filteredMods.forEach((mod, index) => {
-    console.log("MOD", index, mod);
-  });
   const handleAddCar = async (e) => {
     e.preventDefault();
 
     if (!user) return;
 
+    let imageUrl = "";
+
+console.log("carImage BEFORE upload:", carImage);
+
+if (carImage) {
+  try {
+    console.log("Starting upload...");
+
+    const imageRef = ref(
+      storage,
+      `car-images/${user.uid}/${Date.now()}-${carImage.name}`
+    );
+
+    console.log("Image ref created:", imageRef.fullPath);
+
+    await uploadBytes(imageRef, carImage);
+
+    console.log("Upload complete");
+
+    imageUrl = await getDownloadURL(imageRef);
+
+    console.log("Download URL:", imageUrl);
+
+  } catch (error) {
+    console.error("Image upload failed:", error);
+  }
+}
+
     const newCar = {
       name: carName,
       type: carType,
-      image: carImage,
+      image: imageUrl,
       mods: [],
       createdAt: Date.now(),
     };
 
     try {
       const carsRef = collection(db, "users", user.uid, "cars");
-      
-      console.log("newCar object:", newCar);
-      
-      const docRef = await addDoc(carsRef, newCar);
 
-      console.log("Car saved to Firebase:", docRef.id);
+      const docRef = await addDoc(carsRef, newCar);
 
       setCarName("");
       setCarType("");
@@ -138,9 +148,7 @@ function App() {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser);
-
-      console.log("Logged in user:", currentUser);
+      setUser(currentUser);    
     });
 
     return () => unsubscribe();
@@ -158,8 +166,6 @@ function App() {
           id: doc.id,
           ...doc.data(),
         }));
-
-        console.log("Realtime cars update:", loadedCars);
 
         setCars(loadedCars);
       },
@@ -230,15 +236,34 @@ function App() {
     setModPriority("Medium");
   };
 
-  const saveCarImage = () => {
-    if (!selectedCar) return;
+  const saveCarImage = async () => {
+    if (!carImage || !selectedCar || !user) return;
 
-    const updatedCars = cars.map((car) =>
-      car.id === selectedCar.id ? { ...car, image: carImage } : car
-    );
+    try {
+      const imageRef = ref(
+        storage,
+        `car-images/${user.uid}/${Date.now()}-${carImage.name}`
+      );
 
-    setCars(updatedCars);
-    setCarImage("");
+      await uploadBytes(imageRef, carImage);
+
+      const imageUrl = await getDownloadURL(imageRef);
+
+      await setDoc(
+        doc(db, "users", user.uid, "cars", selectedCar.id),
+        {
+          ...selectedCar,
+          image: imageUrl,
+        }
+      );
+
+      console.log("Car image updated!");
+
+      setCarImage("");
+
+    } catch (error) {
+      console.error("Image update failed:", error);
+    }
   };
 
   const saveMod = async () => {
@@ -279,9 +304,7 @@ function App() {
         doc(db, "users", user.uid, "cars", selectedCarId),
         updatedCar
       );
-
-      console.log("Mods synced to Firebase");
-
+      
     } catch (error) {
       console.error("Error syncing mods:", error);
     }
@@ -507,14 +530,7 @@ function App() {
                 value={carType}
                 onChange={(e) => setCarType(e.target.value)}
               />
-
-              <input
-                type="text"
-                placeholder="Image URL optional"
-                value={carImage}
-                onChange={(e) => setCarImage(e.target.value)}
-              />
-
+              
               <button type="submit">Save Car</button>
               <button type="button" onClick={() => setMobileTab("garage")}>
                 Cancel
@@ -614,9 +630,16 @@ function App() {
                     setCarImage(file);
                   }}
                 />
-
-                <button onClick={saveCarImage}>Save Image</button>
               </div>
+
+              <button
+                onClick={() => {
+                  alert("BUTTON CLICK WORKS");
+                  saveCarImage();
+                }}
+              >
+                Save Picture
+              </button>
 
               <div className="stat-row wide">
                 <div>
@@ -734,7 +757,7 @@ function App() {
               <input
                 value={modName}
                 onChange={(e) => setModName(e.target.value)}
-                placeholder="AWE axle-back exhaust, lowering springs, rotors..."
+                placeholder=" Exhaust sys, lowering springs, rotors..."
               />
 
               <label>Cost</label>
