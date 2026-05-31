@@ -643,20 +643,24 @@ if (carImage) {
                     </div>
                   </div>
 
-                  <button 
-                    onClick={() => {
-                      setSelectedCarId(car.id);
-                    window.scrollTo({ top: 0, behavior: "smooth" });
-                    }}
-                  >
-                    Open Build
-                  </button>
-                  <button
-                    className="danger-button"
-                    onClick={() => deleteCar(car.id)}
-                  >
-                    Delete
-                  </button>
+                  <div className="car-card-actions">
+                    <button
+                      onClick={() => {
+                        setSelectedCarId(car.id);
+                        window.scrollTo({ top: 0, behavior: "smooth" });
+                      }}
+                    >
+                      Open Build
+                    </button>
+
+                    <button
+                      className="danger-button"
+                      onClick={() => deleteCar(car.id)}
+                    >
+                      Delete
+                    </button>
+                  </div>
+                
                 </div>
               ))}
             </div>
