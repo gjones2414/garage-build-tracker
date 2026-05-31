@@ -993,6 +993,13 @@ if (carImage) {
                             <span className={`priority-pill ${mod.priority?.toLowerCase() || "medium"}`}>
                               {mod.priority || "Medium"} Priority
                             </span>
+                            
+                            {mod.notes && (
+                              <div className="mod-notes-preview">
+                                <strong>Notes</strong>
+                                <p>{mod.notes}</p>
+                              </div>
+                            )}
 
                             <div className="action-row">
                               <button onClick={() => editMod(mod.originalIndex)}>Edit</button>
