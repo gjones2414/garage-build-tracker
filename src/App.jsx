@@ -6,7 +6,8 @@ import {
   collection, 
   getDocs, 
   addDoc, 
-  doc, 
+  doc,
+  deleteDoc, 
   setDoc,
   onSnapshot, 
 } from "firebase/firestore";
@@ -49,7 +50,7 @@ function App() {
   const [modCategory, setModCategory] = useState("Performance");
   const [modStatus, setModStatus] = useState("Planning");
   const [partNumber, setPartNumber] = useState("");
-  const [partImage, setPartImage] = useState("");
+  const [partImage, setPartImage] = useState(null);
   const [website, setWebsite] = useState("");
   const [notes, setNotes] = useState("");
 
@@ -203,14 +204,24 @@ if (carImage) {
     return mods.reduce((total, mod) => total + Number(mod.cost || 0), 0);
   };
 
-  const getProgress = (mods) => {
-    if (mods.length === 0) return 0;
+  const getProgress = (mods = []) => {
+    if (!mods.length) return 0;
 
-    const completed = mods.filter(
-      (mod) => mod.status === "Installed" || mod.status === "Completed"
-    ).length;
+    const statusValues = {
+      Researching: 0,
+      Planned: 10,
+      "Need to Order": 25,
+      Ordered: 40,
+      "Ready to Install": 60,
+      Installed: 90,
+      Completed: 100,
+    };
 
-    return Math.round((completed / mods.length) * 100);
+    const total = mods.reduce((sum, mod) => {
+      return sum + (statusValues[mod.status] ?? 0);
+    }, 0);
+
+    return Math.round(total / mods.length);
   };
 
   const resetForm = () => {
@@ -224,6 +235,24 @@ if (carImage) {
     setNotes("");
     setEditingIndex(null);
     setModPriority("Medium");
+  };
+
+  const deleteCar = async (carId) => {
+    const confirmDelete = window.confirm(
+      "Are you sure you want to delete this car? This cannot be undone."
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+      await deleteDoc(doc(db, "users", user.uid, "cars", carId));
+
+      setSelectedCarId(null);
+      setSelectedCar(null);
+      setViewMode("list");
+    } catch (error) {
+      console.error("Failed to delete car:", error);
+    }
   };
 
   const saveCarImage = async () => {
@@ -256,8 +285,34 @@ if (carImage) {
     }
   };
 
+  const savePartImage = async (file, carId) => {
+    try {
+      const imageRef = ref(
+        storage,
+        `users/${user.uid}/cars/${carId}/parts/${Date.now()}-${file.name}`
+      );
+
+      await uploadBytes(imageRef, file);
+
+      const downloadURL = await getDownloadURL(imageRef);
+
+      return downloadURL;
+    } catch (error) {
+      console.error("Part image upload failed:", error);
+      return "";
+    }
+  };
+
   const saveMod = async () => {
     if (!modName || !selectedCar) return;
+
+    let partImageUrl = "";
+
+    if (partImage instanceof File) {
+      partImageUrl = await savePartImage(partImage, selectedCar.id);
+    } else {
+      partImageUrl = partImage || "";
+    }
 
     const updatedCars = cars.map((car) => {
       if (car.id !== selectedCar.id) return car;
@@ -266,9 +321,9 @@ if (carImage) {
         name: modName,
         cost: Number(modCost || 0),
         category: modCategory,
-        status: modStatus || "Planning",
+        status: modStatus || "Planned",
         partNumber,
-        partImage,
+        partImage: partImageUrl,
         website,
         notes,
         priority: modPriority,
@@ -353,6 +408,30 @@ if (carImage) {
     setDraggedMod(null);
   };
 
+  const moveModStatus = async (originalIndex, direction) => {
+  if (!selectedCar) return;
+
+  const statuses = [
+    "Researching",
+    "Planned",
+    "Need to Order",
+    "Ordered",
+    "Ready to Install",
+    "Installed",
+    "Completed",
+  ];
+
+  const currentStatus = selectedCar.mods[originalIndex]?.status;
+  const currentIndex = statuses.indexOf(currentStatus);
+
+  if (currentIndex === -1) return;
+
+  const nextIndex = currentIndex + direction;
+
+  if (nextIndex < 0 || nextIndex >= statuses.length) return;
+
+  handleDrop(statuses[nextIndex]);
+};
   const [modPriority, setModPriority] = useState("Medium");
 
   const priorityRank = {
@@ -571,6 +650,12 @@ if (carImage) {
                     }}
                   >
                     Open Build
+                  </button>
+                  <button
+                    className="danger-button"
+                    onClick={() => deleteCar(car.id)}
+                  >
+                    Delete
                   </button>
                 </div>
               ))}
